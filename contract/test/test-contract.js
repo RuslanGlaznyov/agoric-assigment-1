@@ -114,8 +114,11 @@ test('compare two tokens', async (t) => {
   const quatloosPayoutAmount = await E(quatloosIssuer).getAmountOf(
     paymentQuatloosP,
   );
-  const moonaPayoutAmount = await E(moonaIssuer).getAmountOf(paymentMoonaP);
-  // check that the token amount is correct
+  // TODO: is it possible to get supply from the issuer?
+  const moonaPayoutAmount = await moonaIssuer.getAmountOf(paymentMoonaP);
+  // compare two issuers
+  t.notDeepEqual(quatloosIssuer, moonaIssuer);
+  // compare two amounts
   t.deepEqual(quatloosPayoutAmount, quatloosToken);
   t.deepEqual(moonaPayoutAmount, tokensMoona);
 });
