@@ -54,6 +54,9 @@ test('sell and buy nfts', async (t) => {
     moolaIssuerKit,
   } = t.context;
   const invitation = await E(creatorFacet).makeSellInvitation();
+  const availableItemsBeforeSell = await E(creatorFacet).availableNfts();
+  // Start supply is 3
+  t.deepEqual(availableItemsBeforeSell.value.length, 3);
   const seat = E(zoe).offer(invitation, undefined, undefined, {
     sellItemInstallation: sellItemsInstallation,
     pricePerNFT: AmountMath.make(moolaIssuerKit.brand, 1n),
@@ -61,7 +64,10 @@ test('sell and buy nfts', async (t) => {
     nftIds: [1, 2],
   });
   const result = await E(seat).getOfferResult();
-  // put in sale
+  const availableItemsAfterSell = await E(creatorFacet).availableNfts();
+  // we put 2 nfts for sale, so we should have 1 left
+  t.deepEqual(availableItemsAfterSell.value.length, 1);
+
   t.deepEqual(result.status, 'success');
 
   // buy nfts in sale with moola
