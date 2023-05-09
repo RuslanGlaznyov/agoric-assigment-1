@@ -70,7 +70,7 @@ test('sell and buy nfts', async (t) => {
 
   t.deepEqual(result.status, 'success');
 
-  // buy nfts in sale with moola
+  // buy nfts with moola
   const buyInvitation = await E(publicFacet).createBayerInvitation();
   const nftIssuer = await E(publicFacet).getIssuer();
   const nftToBuy = harden([
