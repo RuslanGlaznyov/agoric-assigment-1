@@ -1,53 +1,36 @@
 // @ts-check
 /* global harden */
+import '@agoric/zoe/exported.js';
+import { AmountMath } from '@agoric/ertp';
 import { Far } from '@endo/marshal';
-import { AmountMath } from '@agoric/ertp/src/amountMath.js';
 import { assert, details as X } from '@agoric/assert';
 
 const assertArgs = (offerArgs) => {
   assert(offerArgs, X`offerArgs must be provided`);
-  const { transferAmount } = offerArgs;
-  assert(transferAmount, X`transferAmount is required`);
-  assert(
-    typeof transferAmount === 'bigint',
-    X`The property 'transferAmount' must be of type 'bigint', found: ${typeof transferAmount}`,
-  );
+  const { tokenName, amount: amountOfToken } = offerArgs;
+  assert(tokenName, X`tokenName is required`);
+  assert(amountOfToken, X`amount is required`);
 };
-const start = async (zcf, _) => {
-  const VALUE_TO_MINT = 100n;
-  const TOKEN_KEYWORD = 'Token';
-  const { zcfSeat: zoeSamplesSeat } = zcf.makeEmptySeatKit();
-  const sampleMint = await zcf.makeZCFMint(TOKEN_KEYWORD);
-  const { issuer: sampleIssuer, brand: sampleBrand } =
-    sampleMint.getIssuerRecord();
-  const amountToMint = AmountMath.make(sampleBrand, VALUE_TO_MINT);
-  sampleMint.mintGains({ [TOKEN_KEYWORD]: amountToMint }, zoeSamplesSeat);
-  const transferOfferHandler = async (userSeat, offerArgs) => {
+const start = async (zcf) => {
+  const createNewToken = async (seat, offerArgs) => {
     assertArgs(offerArgs);
-    const { transferAmount } = offerArgs;
-    const amountToTransfer = AmountMath.make(sampleBrand, transferAmount);
-    userSeat.incrementBy(
-      zoeSamplesSeat.decrementBy(harden({ [TOKEN_KEYWORD]: amountToTransfer })),
-    );
-    zcf.reallocate(zoeSamplesSeat, userSeat);
-    userSeat.exit();
-    return harden({
-      message: 'Success',
-      transferred: transferAmount,
-      brand: sampleBrand,
-      issuer: sampleIssuer,
-    });
+    const { tokenName, amount: amountOfToken } = offerArgs;
+    const newTokenMint = await zcf.makeZCFMint(tokenName);
+    const { brand, issuer } = newTokenMint.getIssuerRecord();
+    const amount = AmountMath.make(brand, amountOfToken);
+    newTokenMint.mintGains({ Token: amount }, seat);
+    seat.exit();
+    return {
+      status: 'success',
+      issuer,
+    };
   };
-  const publicFacet = Far('Sample Public Facet', {
-    makeTransferInvitation: () =>
-      zcf.makeInvitation(transferOfferHandler, 'transfer Token'),
-    getIssuer: () => sampleIssuer,
-    getTotalBalance: () => zoeSamplesSeat.getCurrentAllocation(),
-    getTokenBalance: () =>
-      zoeSamplesSeat.getAmountAllocated(TOKEN_KEYWORD, sampleBrand),
+  const creatorFacet = Far('creatorFacet', {
+    makeInvitation: () =>
+      zcf.makeInvitation(createNewToken, 'create new token'),
   });
 
-  return harden({ publicFacet });
+  return harden({ creatorFacet });
 };
 
 harden(start);

@@ -15,7 +15,7 @@ import { AmountMath } from '@agoric/ertp';
 const filename = new URL(import.meta.url).pathname;
 const dirname = path.dirname(filename);
 
-const contractPath = `${dirname}/../src/assignment3-IssuerKit.js`;
+const contractPath = `${dirname}/../src/assignment4-IssuerKit.js`;
 const sellItemsContractPath = `node_modules/@agoric/zoe/src/contracts/sellItems.js`;
 
 test.beforeEach(async (t) => {

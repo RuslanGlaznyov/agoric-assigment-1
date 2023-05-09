@@ -40,7 +40,7 @@ const deployContract = async (homePromise, endowments) => {
 
   const CONTRACT_NAME = 'fungibleFaucet';
   const { id: INSTALLATION_BOARD_ID } = await install(
-    './src/contract.js',
+    './src/assignment2.js',
     CONTRACT_NAME,
   );
 
