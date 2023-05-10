@@ -79,6 +79,11 @@ test('sell and buy nfts', async (t) => {
       name: 'NFT 1',
       description: 'This is the first NFT',
     },
+    {
+      id: 2,
+      name: 'NFT 2',
+      description: 'This is the second NFT',
+    },
   ]);
   const proposal = harden({
     give: {
