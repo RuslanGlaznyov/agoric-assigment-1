@@ -115,10 +115,11 @@ test('sell and buy nfts', async (t) => {
     tokenPayoutAmount,
     AmountMath.make(nftIssuer.getBrand(), nftToBuy),
   );
-  // Q? To reproduce need to buy 1 nft, not 2
-  // when seller exit, he can't get his money. When only on nft sold. getPayout never resolved
-  // await E(seat).tryExit();
-
+  //  Exit before all items sold.
+  //  To reproduce, need to buy 1 nft, then exit.
+  //  when seller exit, he can't get his money. When only on nft sold. getPayout never resolved
+  // await E(result.sellItemsCreatorSeat).tryExit();
+  // console.log(await E(result.sellItemsCreatorSeat).hasExited());
   // check that seller get his money
   const paymentAmountMoneysellItemsCreatorSeat = await E(
     moolaIssuerKit.issuer,
@@ -130,6 +131,6 @@ test('sell and buy nfts', async (t) => {
   // If so, how to reallocate them to seller?
   t.deepEqual(
     paymentAmountMoneysellItemsCreatorSeat,
-    AmountMath.make(moolaIssuerKit.brand, 1n),
+    AmountMath.make(moolaIssuerKit.brand, 2n),
   );
 });
