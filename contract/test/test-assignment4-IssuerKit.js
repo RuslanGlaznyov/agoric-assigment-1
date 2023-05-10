@@ -108,6 +108,18 @@ test('sell and buy nfts', async (t) => {
     'The offer has been accepted. Once the contract has been completed, please check your payout',
   );
   const paymentP = await E(buySeat).getPayout('Items');
+  // const paymentSell = await E(result.sellItemsCreatorSeat).getPayout('Money');
+  const paymentAmountMoneysellItemsCreatorSeat = await E(
+    moolaIssuerKit.issuer,
+  ).getAmountOf(await E(result.sellItemsCreatorSeat).getPayout('Money'));
+  // check that seller get his money
+  // here we get payment from sellItemsCreatorSeat, how to get it from userSeat?
+  // In this case who get the money? Is they will be locked in the contract?
+  // If so, how to reallocate them to seller?
+  t.deepEqual(
+    paymentAmountMoneysellItemsCreatorSeat,
+    AmountMath.make(moolaIssuerKit.brand, 2n),
+  );
   const tokenPayoutAmount = await E(nftIssuer).getAmountOf(paymentP);
   // check the payment is the expected buy amount
   t.deepEqual(

@@ -66,7 +66,6 @@ const start = async (zcf) => {
     sellItemPublicFacet = publicFacet;
     const tokenPayment = nftPurse.withdraw(nftForSellAmount);
     const paymentKeywordRecord = harden({ Items: tokenPayment });
-
     const proposal = harden({
       give: { Items: nftForSellAmount },
     });
