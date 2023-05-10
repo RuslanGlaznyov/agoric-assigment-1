@@ -114,7 +114,7 @@ test('sell and buy nfts', async (t) => {
   ).getAmountOf(await E(result.sellItemsCreatorSeat).getPayout('Money'));
   // check that seller get his money
   // here we get payment from sellItemsCreatorSeat, how to get it from userSeat?
-  // In this case who get the money? Is they will be locked in the contract?
+  // In this case who get the money? Are they will be locked in the contract?
   // If so, how to reallocate them to seller?
   t.deepEqual(
     paymentAmountMoneysellItemsCreatorSeat,
