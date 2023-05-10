@@ -107,8 +107,15 @@ test('sell and buy nfts', async (t) => {
     buyResult,
     'The offer has been accepted. Once the contract has been completed, please check your payout',
   );
+  // check that buyer get his nft
   const paymentP = await E(buySeat).getPayout('Items');
-  // const paymentSell = await E(result.sellItemsCreatorSeat).getPayout('Money');
+  const tokenPayoutAmount = await E(nftIssuer).getAmountOf(paymentP);
+  // check the payment is the expected buy amount
+  t.deepEqual(
+    tokenPayoutAmount,
+    AmountMath.make(nftIssuer.getBrand(), nftToBuy),
+  );
+  // check that seller get his money
   const paymentAmountMoneysellItemsCreatorSeat = await E(
     moolaIssuerKit.issuer,
   ).getAmountOf(await E(result.sellItemsCreatorSeat).getPayout('Money'));
@@ -120,10 +127,5 @@ test('sell and buy nfts', async (t) => {
     paymentAmountMoneysellItemsCreatorSeat,
     AmountMath.make(moolaIssuerKit.brand, 2n),
   );
-  const tokenPayoutAmount = await E(nftIssuer).getAmountOf(paymentP);
-  // check the payment is the expected buy amount
-  t.deepEqual(
-    tokenPayoutAmount,
-    AmountMath.make(nftIssuer.getBrand(), nftToBuy),
-  );
+
 });
