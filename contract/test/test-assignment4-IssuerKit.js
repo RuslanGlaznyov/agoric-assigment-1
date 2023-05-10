@@ -79,11 +79,6 @@ test('sell and buy nfts', async (t) => {
       name: 'NFT 1',
       description: 'This is the first NFT',
     },
-    {
-      id: 2,
-      name: 'NFT 2',
-      description: 'This is the second NFT',
-    },
   ]);
   const proposal = harden({
     give: {
@@ -120,6 +115,11 @@ test('sell and buy nfts', async (t) => {
   //  when seller exit, he can't get his money. When only on nft sold. getPayout never resolved
   // await E(result.sellItemsCreatorSeat).tryExit();
   // console.log(await E(result.sellItemsCreatorSeat).hasExited());
+  //
+  // Q? When we exit before all items sold, where the nfs will be?
+  // In this case we can't get reward even if more nfts sold, after we exit?
+  // https://github.com/Agoric/agoric-sdk/blob/4e0aece631d8310c7ab8ef3f46fad8981f64d208/packages/zoe/src/contracts/sellItems.js#L35
+
   // check that seller get his money
   const paymentAmountMoneysellItemsCreatorSeat = await E(
     moolaIssuerKit.issuer,
