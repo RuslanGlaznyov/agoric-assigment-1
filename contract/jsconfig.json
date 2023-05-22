@@ -2,8 +2,9 @@
 {
   "compilerOptions": {
     "target": "esnext",
-
+    // "module": "esnext",
     "noEmit": true,
+    "moduleResolution": "node",
 /*
     // The following flags are for creating .d.ts files:
     "noEmit": false,
@@ -12,7 +13,8 @@
 */
     "downlevelIteration": true,
     "strictNullChecks": true,
-    "moduleResolution": "node",
+ 
+
   },
   "include": ["src/**/*.js", "test/**/*.js", "exported.js", "globals.d.ts"],
 }

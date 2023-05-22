@@ -10,20 +10,20 @@ import { makeFakeVatAdmin } from '@agoric/zoe/tools/fakeVatAdmin.js';
 import { makeZoeKit } from '@agoric/zoe';
 import { makeIssuerKit } from '@agoric/ertp/src/issuerKit.js';
 import { AmountMath } from '@agoric/ertp';
+import { defaultAcceptanceMsg } from '@agoric/zoe/src/contractSupport/index.js';
 
 const filename = new URL(import.meta.url).pathname;
 const dirname = path.dirname(filename);
 
-const contractPath = `${dirname}/../src/assignment4-IssuerKit.js`;
+const zfMintPath = `${dirname}/../src/assignment4-zcfMINT.js`;
 const sellItemsContractPath = `node_modules/@agoric/zoe/src/contracts/sellItems.js`;
-
 test.beforeEach(async (t) => {
   const { zoeService } = makeZoeKit(makeFakeVatAdmin().admin);
   const feePurse = E(zoeService).makeFeePurse();
   const zoe = E(zoeService).bindDefaultFeePurse(feePurse);
 
   // pack the contract
-  const bundle = await bundleSource(contractPath);
+  const bundle = await bundleSource(zfMintPath);
   const sellItemsBundle = await bundleSource(sellItemsContractPath);
   // install the contract
   const installation = E(zoe).install(bundle);
@@ -43,43 +43,50 @@ test.beforeEach(async (t) => {
     moolaIssuerKit,
   };
 });
+test('sell-and-buy-test', async (t) => {
+  const { zoe, sellItemsInstallation, moolaIssuerKit } = t.context;
 
-test('sell and buy nfts', async (t) => {
-  const {
-    creatorFacet,
-    publicFacet,
-    zoe,
-    sellItemsInstallation,
-    moolaIssuerKit,
-  } = t.context;
-  const invitation = await E(creatorFacet).makeSellInvitation();
-  const availableItemsBeforeSell = await E(creatorFacet).availableNfts();
-  // Start supply is 3
-  t.deepEqual(availableItemsBeforeSell.value.length, 3);
+  const bundle = await bundleSource(zfMintPath);
+  const installation = E(zoe).install(bundle);
+
+  const { publicFacet, creatorFacet } = await E(zoe).startInstance(
+    installation,
+    harden({ Asset: moolaIssuerKit.issuer }),
+  );
+
+  const availableNftsBeforeSell = await E(creatorFacet).availableNfts();
+  t.deepEqual(availableNftsBeforeSell.value.length, 3);
+
+  const invitation = E(creatorFacet).makeSellInvitation();
+
   const seat = E(zoe).offer(invitation, undefined, undefined, {
     sellItemInstallation: sellItemsInstallation,
     pricePerNFT: AmountMath.make(moolaIssuerKit.brand, 1n),
     // for sell 2 nfts
-    nftIds: [1, 2],
+    nftIds: [1n, 2n],
   });
-  const result = await E(seat).getOfferResult();
-  const availableItemsAfterSell = await E(creatorFacet).availableNfts();
-  // we put 2 nfts for sale, so we should have 1 left
-  t.deepEqual(availableItemsAfterSell.value.length, 1);
 
-  t.deepEqual(result.status, 'success');
+  const { status, sellItemsCreatorSeat } = await E(seat).getOfferResult();
 
-  // buy nfts with moola
-  const buyInvitation = await E(publicFacet).createBayerInvitation();
-  const nftIssuer = await E(publicFacet).getIssuer();
+  const [sellItemsOfferResult, availableNftsAfterSell] = await Promise.all([
+    E(sellItemsCreatorSeat).getOfferResult(),
+    E(creatorFacet).availableNfts(),
+  ]);
+
+  t.deepEqual(sellItemsOfferResult, defaultAcceptanceMsg);
+  t.deepEqual(status, 'success');
+  t.deepEqual(availableNftsAfterSell.value.length, 1);
+
+  const buyInvitation = await E(publicFacet).createBuyerInvitation();
+  const nftBrand = await E(publicFacet).getBrand();
   const nftToBuy = harden([
     {
-      id: 1,
+      id: 1n,
       name: 'NFT 1',
       description: 'This is the first NFT',
     },
     {
-      id: 2,
+      id: 2n,
       name: 'NFT 2',
       description: 'This is the second NFT',
     },
@@ -91,7 +98,7 @@ test('sell and buy nfts', async (t) => {
       Money: AmountMath.make(moolaIssuerKit.brand, 2n),
     },
     want: {
-      Items: AmountMath.make(nftIssuer.getBrand(), nftToBuy),
+      Items: AmountMath.make(nftBrand, nftToBuy),
     },
   });
 
@@ -102,37 +109,15 @@ test('sell and buy nfts', async (t) => {
   });
   const buySeat = E(zoe).offer(buyInvitation, proposal, paymentKeywordRecord);
   const buyResult = await E(buySeat).getOfferResult();
-  t.deepEqual(
-    buyResult,
-    'The offer has been accepted. Once the contract has been completed, please check your payout',
-  );
-  // check that buyer get his nft
-  const paymentP = await E(buySeat).getPayout('Items');
-  const tokenPayoutAmount = await E(nftIssuer).getAmountOf(paymentP);
-  // check the payment is the expected buy amount
-  t.deepEqual(
-    tokenPayoutAmount,
-    AmountMath.make(nftIssuer.getBrand(), nftToBuy),
-  );
-  //  Exit before all items sold.
-  //  To reproduce, need to buy 1 nft, then exit.
-  //  when seller exit, he can't get his money. When only on nft sold. getPayout never resolved
-  // await E(result.sellItemsCreatorSeat).tryExit();
-  // console.log(await E(result.sellItemsCreatorSeat).hasExited());
-  //
-  // Q? When we exit before all items sold, where the nfs will be?
-  // In this case we can't get reward even if more nfts sold, after we exit?
-  // https://github.com/Agoric/agoric-sdk/blob/4e0aece631d8310c7ab8ef3f46fad8981f64d208/packages/zoe/src/contracts/sellItems.js#L35
+  console.log(buyResult);
+  t.deepEqual(buyResult, defaultAcceptanceMsg);
 
-  // check that seller get his money
+  const sellerPayout = await E(seat).getPayout('Money');
+
   const paymentAmountMoneysellItemsCreatorSeat = await E(
     moolaIssuerKit.issuer,
-  ).getAmountOf(await E(result.sellItemsCreatorSeat).getPayout('Money'));
-  // Q?
-  // check that seller get his money
-  // here we get payment from sellItemsCreatorSeat, how to get it from userSeat?
-  // In this case who get the money? Are they will be locked in the contract?
-  // If so, how to reallocate them to seller?
+  ).getAmountOf(sellerPayout);
+
   t.deepEqual(
     paymentAmountMoneysellItemsCreatorSeat,
     AmountMath.make(moolaIssuerKit.brand, 2n),
