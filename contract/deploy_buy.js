@@ -26,26 +26,27 @@ const deployContract = async (homeP) => {
   const proposal = {
     give: {
       Money: {
-        pursePetname: 'ATOM',
+        pursePetname: 'Agoric staking token',
         value: 2n,
       },
     },
-    // want: {
-    //   // AmountMath.make(nftBrand, nftToBuy)
-    //   Items: {
-    //     pursePetname: 'MyNFTPurse',
-    //     value: nftToBuy,
-    //   },
-    // },
+    want: {
+      // AmountMath.make(nftBrand, nftToBuy)
+      Items: {
+        pursePetname: 'MyNFTPurse',
+        value: nftToBuy,
+      },
+    },
   };
   const offerConfig = {
-    id: Date.now(),
+    id: `${Date.now()}`,
     invitationQuery: {
       description: 'NFTS For sell',
       instance,
     },
     proposalTemplate: proposal,
   };
+  // fails with error: `A Zoe invitation is required, not (an object)`
   await E(walletBridge).addOffer(offerConfig);
 };
 

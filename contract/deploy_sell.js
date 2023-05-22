@@ -55,6 +55,7 @@ const deployContract = async (homeP, endo) => {
     E(board).getId(nftIssuer),
     E(scratch).set('faucet-creator-id', creatorFacet),
   ]);
+  // Q. How can we do the same, if we keep sellItem seat?
 
   const { status } = await E(seat).getOfferResult();
   console.log('Success!');
