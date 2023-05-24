@@ -2,6 +2,7 @@
 import { E } from '@endo/eventual-send';
 import { makeHelpers } from '@agoric/deploy-script-support';
 import { AmountMath } from '@agoric/ertp';
+import fs from 'fs';
 
 const deployContract = async (homeP, endo) => {
   const { board, scratch, zoe, agoricNames } = E.get(homeP);
@@ -10,6 +11,8 @@ const deployContract = async (homeP, endo) => {
     E(agoricNames).lookup('issuer', 'BLD'),
     E(agoricNames).lookup('brand', 'BLD'),
   ]);
+  console.log(BldBrand);
+  console.log('is issuer-->', await E(BldBrand).isMyIssuer(BldIssuer));
   console.log('BldIssuer', BldIssuer);
   const { installation } = await install(
     './src/assignment4-zcfMINT.js',
@@ -20,22 +23,6 @@ const deployContract = async (homeP, endo) => {
     harden({ Asset: BldIssuer }),
   );
   const nftIssuer = await E(creatorFacet).getIssuer();
-
-  // can't pass object to offer config?
-  // const offerConfig = {
-  //   id: Date.now(),
-  //   invitationQuery: {
-  //     description: 'NFTS For sell',
-  //     instance,
-  //   },
-  //   arguments: {
-  //     sellItemInstallation: installation,
-  //     pricePerNFT: AmountMath.make(BldBrand, 1n),
-  //     nftIds: [1n, 2n],
-  //   },
-  // };
-  // await E(walletBridge).addOffer(offerConfig);
-  // console.log('check your wallet UI');
   const { installation: sellItemInstallation } = await install(
     'node_modules/@agoric/zoe/src/contracts/sellItems.js',
     'sellItems',
@@ -55,7 +42,6 @@ const deployContract = async (homeP, endo) => {
     E(board).getId(nftIssuer),
     E(scratch).set('faucet-creator-id', creatorFacet),
   ]);
-  // Q. How can we do the same, if we keep sellItem seat?
 
   const { status } = await E(seat).getOfferResult();
   console.log('Success!');
@@ -63,6 +49,10 @@ const deployContract = async (homeP, endo) => {
   console.log('nftIssuerId', nftIssuerId);
   console.log('faucetCreatorId', faucetCreatorId);
   console.log(status);
+  fs.writeFileSync(
+    'deploy_state.json',
+    JSON.stringify({ instanceId, nftIssuerId }),
+  );
 };
 
 export default deployContract;

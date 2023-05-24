@@ -1,16 +1,18 @@
 /* global harden */
 import { E } from '@endo/eventual-send';
-// import { makeHelpers } from '@agoric/deploy-script-support';
-// import { AmountMath } from '@agoric/ertp';
+import fs from 'fs';
 
+let deployState;
+try {
+  deployState = JSON.parse(fs.readFileSync('./deploy_state.json'));
+} catch {
+  console.error('Deploy error, please run `deploy_sell.js` first');
+}
 const deployContract = async (homeP) => {
-  const { board, wallet } = E.get(homeP);
+  const { board, wallet, zoe } = E.get(homeP);
   const walletBridge = E(wallet).getBridge();
 
-  const instance = await E(board).getValue('board016105');
-  console.log(instance);
-  // const nftBrand = await E(nftIssuer).getBrand();
-
+  const instance = await E(board).getValue(deployState.instanceId);
   const nftToBuy = harden([
     {
       id: 1n,
@@ -33,17 +35,15 @@ const deployContract = async (homeP) => {
     want: {
       // AmountMath.make(nftBrand, nftToBuy)
       Items: {
-        pursePetname: 'MyNFTPurse',
+        pursePetname: 'board01985',
         value: nftToBuy,
       },
     },
   };
+  const publicFacet = await E(zoe).getPublicFacet(instance);
   const offerConfig = {
     id: `${Date.now()}`,
-    invitationQuery: {
-      description: 'NFTS For sell',
-      instance,
-    },
+    invitation: await E(publicFacet).createBuyerInvitation(),
     proposalTemplate: proposal,
   };
   // fails with error: `A Zoe invitation is required, not (an object)`

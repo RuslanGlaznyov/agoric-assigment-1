@@ -63,7 +63,7 @@ test('sell-and-buy-test', async (t) => {
     sellItemInstallation: sellItemsInstallation,
     pricePerNFT: AmountMath.make(moolaIssuerKit.brand, 1n),
     // for sell 2 nfts
-    nftIds: [1n, 2n],
+    nftIds: [1n, 2n, 3n],
   });
 
   const { status, sellItemsCreatorSeat } = await E(seat).getOfferResult();
@@ -75,7 +75,7 @@ test('sell-and-buy-test', async (t) => {
 
   t.deepEqual(sellItemsOfferResult, defaultAcceptanceMsg);
   t.deepEqual(status, 'success');
-  t.deepEqual(availableNftsAfterSell.value.length, 1);
+  t.deepEqual(availableNftsAfterSell.value.length, 0);
 
   const buyInvitation = await E(publicFacet).createBuyerInvitation();
   const nftBrand = await E(publicFacet).getBrand();
@@ -90,12 +90,17 @@ test('sell-and-buy-test', async (t) => {
       name: 'NFT 2',
       description: 'This is the second NFT',
     },
+    {
+      id: 3n,
+      name: 'NFT 3',
+      description: 'This is the third NFT',
+    },
   ]);
   const proposal = harden({
     give: {
       // Give to 2 moola for 2 nft
       // 2nft * 1moola/nft = 2moola
-      Money: AmountMath.make(moolaIssuerKit.brand, 2n),
+      Money: AmountMath.make(moolaIssuerKit.brand, 3n),
     },
     want: {
       Items: AmountMath.make(nftBrand, nftToBuy),
@@ -104,7 +109,7 @@ test('sell-and-buy-test', async (t) => {
 
   const paymentKeywordRecord = harden({
     Money: moolaIssuerKit.mint.mintPayment(
-      AmountMath.make(moolaIssuerKit.brand, 2n),
+      AmountMath.make(moolaIssuerKit.brand, 3n),
     ),
   });
   const buySeat = E(zoe).offer(buyInvitation, proposal, paymentKeywordRecord);
@@ -120,6 +125,6 @@ test('sell-and-buy-test', async (t) => {
 
   t.deepEqual(
     paymentAmountMoneysellItemsCreatorSeat,
-    AmountMath.make(moolaIssuerKit.brand, 2n),
+    AmountMath.make(moolaIssuerKit.brand, 3n),
   );
 });
