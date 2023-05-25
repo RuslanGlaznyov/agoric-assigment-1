@@ -24,18 +24,23 @@ const deployContract = async (homeP) => {
       name: 'NFT 2',
       description: 'This is the second NFT',
     },
+    {
+      id: 3n,
+      name: 'NFT 3',
+      description: 'This is the third NFT',
+    },
   ]);
   const proposal = {
     give: {
       Money: {
-        pursePetname: 'Agoric staking token',
-        value: 2n,
+        pursePetname: 'Agoric stable local currency',
+        value: 3000000n,
       },
     },
     want: {
       // AmountMath.make(nftBrand, nftToBuy)
       Items: {
-        pursePetname: 'board01985',
+        pursePetname: 'board042116',
         value: nftToBuy,
       },
     },

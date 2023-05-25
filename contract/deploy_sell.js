@@ -8,8 +8,8 @@ const deployContract = async (homeP, endo) => {
   const { board, scratch, zoe, agoricNames } = E.get(homeP);
   const { install } = await makeHelpers(homeP, endo);
   const [BldIssuer, BldBrand] = await Promise.all([
-    E(agoricNames).lookup('issuer', 'BLD'),
-    E(agoricNames).lookup('brand', 'BLD'),
+    E(agoricNames).lookup('issuer', 'IST'),
+    E(agoricNames).lookup('brand', 'IST'),
   ]);
   console.log(BldBrand);
   console.log('is issuer-->', await E(BldBrand).isMyIssuer(BldIssuer));
@@ -32,9 +32,9 @@ const deployContract = async (homeP, endo) => {
 
   const seat = E(zoe).offer(invitation, undefined, undefined, {
     sellItemInstallation,
-    pricePerNFT: AmountMath.make(BldBrand, 1n),
-    // for sell 2 nfts
-    nftIds: [1n, 2n],
+    pricePerNFT: AmountMath.make(BldBrand, 1000000n),
+    // for sell 3 nfts
+    nftIds: [1n, 2n, 3n],
   });
 
   const [instanceId, nftIssuerId, faucetCreatorId] = await Promise.all([
